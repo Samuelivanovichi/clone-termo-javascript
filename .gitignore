@@ -1,0 +1,7 @@
+# ignora arquivos de configuracao de ide e sistema
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ignora pacotes do node.js se por acaso for instalar alguma ferramenta local
+node_modules/

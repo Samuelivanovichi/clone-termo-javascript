@@ -1,0 +1,493 @@
+/* =========================================================
+   1. SISTEMA DE CORES E VARIÁVEIS (Paleta Terrosa & Temas)
+   ========================================================= */
+:root {
+    /* Dimensões do Layout */
+    --header-height: 60px;
+    --keyboard-height: 200px;
+    --game-max-width: 550px; /* Largura otimizada para tiles grandes */
+
+    /* TEMPO DE ANIMAÇÃO GERAL (Transição de Tema) */
+    --transition-speed: 0.4s;
+
+    /* PALETA CLARA (Dia - Areia e Café) */
+    --color-bg: #F0E6D2;          /* Creme suave */
+    --color-text: #4E342E;        /* Marrom Café */
+    --color-border: #D7CCC8;      /* Bege escuro */
+    --color-border-active: #5D4037; /* Marrom Tabaco */
+    
+    /* Cores do Teclado (Neutro) */
+    --key-bg: #D7C6B3;            /* Bege médio */
+    --key-text: #3E2723;
+    
+    /* CORES DE ESTADO (Feedback do Jogo - Tons Naturais) */
+    --color-correct: #688E26;     /* Verde Oliva (Lugar Certo) */
+    --color-present: #D4A017;     /* Amarelo Ocre (Lugar Errado) */
+    --color-absent:  #8D8175;     /* Taupe/Cinza Quente (Não existe) */
+    --color-text-on-state: #FFFFFF; /* Texto em cima de cores sólidas */
+
+    /* Elementos Flutuantes (Modais e Toasts) */
+    --modal-overlay-bg: rgba(62, 39, 35, 0.5); /* Sépia translúcido */
+    --modal-content-bg: #FAF3E0;  /* Branco Perola */
+    --modal-shadow: 0 10px 25px rgba(62, 39, 35, 0.25);
+    --toast-bg: #3E2723;
+    --toast-text: #F0E6D2;
+}
+
+/* PALETA ESCURA (Noite - Café Forte e Chocolate) */
+body.dark-mode {
+    --color-bg: #221A18;          /* Café bem escuro */
+    --color-text: #ECE0D1;        /* Creme Claro */
+    --color-border: #4E342E;      /* Marrom Chocolate */
+    --color-border-active: #A1887F;
+    
+    --key-bg: #40322C;            /* Marrom Madeira Escura */
+    --key-text: #ECE0D1;
+    
+    --color-absent: #3E3B39;      /* Carvão Fosco */
+    /* Cores de correct e present mantidas pois têm bom contraste */
+    
+    --modal-overlay-bg: rgba(0, 0, 0, 0.75);
+    --modal-content-bg: #2C2422;
+    --modal-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    --toast-bg: #ECE0D1;
+    --toast-text: #221A18;
+}
+
+/* =========================================================
+   2. RESET E TIPOGRAFIA GLOBAL
+   ========================================================= */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    /* Fonte Serifada para estilo clássico/literário */
+    font-family: 'Roboto Slab', serif; 
+    
+    width: 100%;
+    height: 100dvh; /* dvh evita bugs de barra de navegação em mobile */
+    overflow: hidden;
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    /* Suaviza troca de tema */
+    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+    user-select: none; /* Impede seleção de texto ao clicar freneticamente */
+}
+
+button {
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    background: none;
+    /* Remove highlight azul no mobile */
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* =========================================================
+   3. CABEÇALHO (Header)
+   ========================================================= */
+.header {
+    height: var(--header-height);
+    width: 100%;
+    max-width: var(--game-max-width);
+    border-bottom: 2px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    
+    /* Transição suave também para as bordas do header */
+    transition: border-color var(--transition-speed) ease;
+}
+
+.header h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin: 0;
+    /* Ajuste visual para telas muito pequenas */
+    white-space: nowrap;
+}
+
+/* Controles (Direita) */
+.controls-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.icon-btn svg {
+    width: 26px;
+    height: 26px;
+    fill: var(--color-text);
+    transition: transform 0.2s, fill var(--transition-speed) ease;
+}
+.icon-btn:hover svg { transform: scale(1.1); }
+.icon-btn:active svg { transform: scale(0.9); }
+
+/* Switch Toggle Customizado */
+.theme-switch {
+    position: relative;
+    width: 46px; height: 26px;
+}
+.theme-switch input { opacity: 0; width: 0; height: 0; }
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: var(--color-border);
+    border-radius: 34px;
+    transition: 0.4s;
+    border: 1px solid var(--color-text);
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px; width: 18px;
+    left: 3px; bottom: 3px;
+    background-color: var(--color-text);
+    border-radius: 50%;
+    transition: 0.4s;
+}
+input:checked + .slider { background-color: var(--color-text); }
+input:checked + .slider:before { 
+    transform: translateX(20px); 
+    background-color: var(--color-bg); 
+}
+
+/* =========================================================
+   4. GRADE DO JOGO (GRID) - Maximizada
+   ========================================================= */
+#game-container {
+    flex-grow: 1; /* Ocupa todo o espaço vertical disponível */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 10px;
+}
+
+#grid-container {
+    /* Layout */
+    display: grid;
+    grid-template-rows: repeat(6, 1fr); /* 6 tentativas */
+    gap: 8px; /* Espaço arejado */
+    
+    width: 100%;
+    max-width: 480px; /* Largura ideal */
+    
+    /* Altura Dinâmica Inteligente:
+       Nunca ultrapassa o teclado, mas tenta preencher a tela */
+    height: 100%; 
+    max-height: calc(100dvh - var(--header-height) - var(--keyboard-height) - 40px);
+    
+    aspect-ratio: 5 / 6; /* Mantém proporção correta para 5 letras / 6 tentativas */
+}
+
+.row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* 6 colunas para palavras de 6 letras */
+    gap: 8px;
+}
+
+/* TILES (As Letras) - Redondas e Grandes */
+.tile {
+    /* Aparência Base */
+    border: 2px solid var(--color-border);
+    border-radius: 8px; /* Arredondado suave (menos boxy) */
+    background-color: transparent;
+    
+    /* Centralização do Texto */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    /* Tipografia Grande */
+    font-size: clamp(1.8rem, 4vh, 2.5rem); 
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--color-text);
+    
+    /* Transições */
+    transition: border-color 0.1s, background-color var(--transition-speed);
+}
+
+/* Estado: TBD (Digitando... buffer) */
+.tile[data-state='tbd'] {
+    border-color: var(--color-text);
+    border-width: 3px;
+    animation: pop 0.1s ease-in;
+    color: var(--color-text);
+}
+
+/* Estados Finais (Lógica do JS) */
+.tile[data-state='correct'] {
+    background-color: var(--color-correct);
+    border-color: var(--color-correct);
+    color: var(--color-text-on-state);
+}
+.tile[data-state='present'] {
+    background-color: var(--color-present);
+    border-color: var(--color-present);
+    color: var(--color-text-on-state);
+}
+.tile[data-state='absent'] {
+    background-color: var(--color-absent);
+    border-color: var(--color-absent);
+    color: var(--color-text-on-state);
+}
+
+/* =========================================================
+   5. TECLADO VIRTUAL INTEGRADO
+   ========================================================= */
+#keyboard-container {
+    height: var(--keyboard-height);
+    width: 100%;
+    max-width: var(--game-max-width);
+    padding: 0 8px 15px 8px; /* Padding bottom para 'queixo' mobile */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.keyboard-row {
+    display: flex;
+    width: 100%;
+    margin: 0 auto 6px;
+    touch-action: manipulation; /* Remove delay de zoom no mobile */
+}
+
+.key {
+    flex: 1; /* Distribui espaço igualmente */
+    height: 54px; /* Altura generosa para toque */
+    margin: 0 3px;
+    border-radius: 6px; /* Botões redondinhos */
+    
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    
+    /* Estilo Terroso do Teclado */
+    background-color: var(--key-bg);
+    color: var(--key-text);
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    /* Suaviza transição de cores ao revelar e trocar tema */
+    transition: background-color 0.3s, color 0.3s, transform 0.05s;
+    user-select: none;
+}
+
+.key.large {
+    flex: 1.5; /* Enter e Backspace maiores */
+    font-size: 0.75rem; /* Fonte menor para caber texto */
+}
+
+/* Estados do Teclado */
+.key[data-state='correct'] { background-color: var(--color-correct); color: var(--color-text-on-state); }
+.key[data-state='present'] { background-color: var(--color-present); color: var(--color-text-on-state); }
+.key[data-state='absent']  { background-color: var(--color-absent); color: var(--color-text-on-state); }
+
+/* Animação de Clique (Mouse e Sincronia Física JS) */
+.key:active, 
+.key.active-pulse {
+    transform: scale(0.9);
+    filter: brightness(1.1);
+}
+
+/* =========================================================
+   6. ANIMAÇÕES (Sincronizadas com o JS)
+   ========================================================= */
+
+/* Entrar letra */
+@keyframes pop {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Revelar Carta (Flip) - Usado no animarRevelacao() */
+.tile.flip-in { animation: flipIn 0.25s forwards; }
+.tile.flip-out { animation: flipOut 0.25s forwards; }
+
+@keyframes flipIn {
+    0% { transform: rotateX(0); }
+    100% { transform: rotateX(-90deg); }
+}
+@keyframes flipOut {
+    0% { transform: rotateX(-90deg); }
+    100% { transform: rotateX(0); }
+}
+
+/* Erro (Palavra Inválida) - Usado no animarShakeErro() */
+.row.shake { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both; }
+@keyframes shake {
+    10%, 90% { transform: translateX(-1px); }
+    20%, 80% { transform: translateX(2px); }
+    30%, 50%, 70% { transform: translateX(-4px); }
+    40%, 60% { transform: translateX(4px); }
+}
+
+/* Vitória (Dancinha) - Usado no animarVitoria() */
+.tile.dance { animation: dance 0.6s ease-in-out; }
+@keyframes dance {
+    20% { transform: translateY(-30%); }
+    40% { transform: translateY(10%); }
+    60% { transform: translateY(-15%); }
+    80% { transform: translateY(5%); }
+}
+
+/* =========================================================
+   7. MODAIS, POPUPS E TOASTS
+   ========================================================= */
+
+/* Toast Notification (Mensagem Flutuante) */
+#toast-container {
+    position: absolute;
+    top: 12%; left: 50%;
+    transform: translateX(-50%);
+    z-index: 2000;
+    pointer-events: none; /* Deixa clicar no grid por baixo */
+}
+
+.toast {
+    background-color: var(--toast-bg);
+    color: var(--toast-text);
+    padding: 12px 20px;
+    border-radius: 50px; /* Estilo Pílula */
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-bottom: 8px;
+    
+    /* Animação suave de entrada */
+    opacity: 0;
+    animation: fadeInToast 0.3s forwards;
+}
+@keyframes fadeInToast { from {opacity:0; transform: translateY(10px);} to {opacity:1; transform:translateY(0);} }
+
+/* Overlay dos Modais */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: var(--modal-overlay-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px); /* Desfoque elegante no fundo */
+}
+.modal-overlay[hidden] { display: none !important; }
+
+/* Conteúdo dos Modais (Card) */
+.modal-content {
+    background-color: var(--modal-content-bg);
+    padding: 30px;
+    border-radius: 16px; /* Borda bem arredondada */
+    box-shadow: var(--modal-shadow);
+    max-width: 500px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    border: 1px solid var(--color-border);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.modal-header h2 {
+    color: var(--color-text);
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+.modal-close-button {
+    font-size: 1.5rem;
+    color: var(--color-text);
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.modal-close-button:hover { opacity: 1; }
+
+/* Grid de Estatísticas */
+.stats-grid {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+    text-align: center;
+}
+.stat-item .value { font-size: 2rem; font-weight: 800; display: block; color: var(--color-text); }
+.stat-item .label { font-size: 0.8rem; text-transform: uppercase; color: var(--color-border-active); }
+
+/* Exemplo de Tutorial */
+.example-row { display: flex; gap: 5px; margin-top: 10px; margin-bottom: 5px; }
+.small-tile {
+    width: 40px; height: 40px;
+    border: 2px solid var(--color-border);
+    border-radius: 6px;
+    display: flex; justify-content: center; align-items: center;
+    font-weight: 700; font-size: 1.2rem;
+}
+
+/* Media Query para Mobile Pequeno */
+@media (max-height: 700px) {
+    .header h1 { font-size: 1.8rem; }
+    :root { --keyboard-height: 160px; }
+    .key { height: 45px; }
+}
+
+/* =========================================
+   8. ESTILOS DO BOTÃO DE REINICIAR
+   ========================================= */
+
+/* Estilo para o ícone de girar no header */
+.header .restart-game-btn {
+    color: var(--color-text); /* Garante que a cor seja a mesma dos outros ícones */
+    fill: currentColor;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.header .restart-game-btn:hover {
+    transform: rotate(-180deg);
+}
+.header .restart-game-btn:active {
+    transform: rotate(-180deg) scale(0.9);
+}
+
+/* Estilo para o botão "Jogar Novamente" no Modal de Estatísticas */
+.btn-retry {
+    width: 100%; 
+    margin-top: 10px; 
+    padding: 12px; 
+    border-radius: 8px; 
+    font-weight: 800; 
+    cursor: pointer; 
+    background-color: var(--color-border-active); 
+    color: var(--color-bg); 
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    
+    /* Feedback de clique */
+    transition: filter 0.2s, transform 0.1s;
+}
+
+.btn-retry:hover {
+    filter: brightness(1.2); /* Deixa um pouco mais brilhante no hover */
+}
+.btn-retry:active {
+    transform: scale(0.97); /* "Afunda" levemente ao clicar */
+}
