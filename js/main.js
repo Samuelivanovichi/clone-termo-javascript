@@ -517,12 +517,13 @@ function renderizarEstatisticasUI() {
 }
 
 function compartilharResultado() {
+    // 1. Monta o cabeçalho do resultado
     const jogadaStr = estadoJogo.status === 'vitoria' 
         ? estadoJogo.tentativasFeitas.length 
         : 'X';
-    
-    const titulo = `Termo Clone ${jogadaStr}/${CONFIG.MAX_TENTATIVAS}`;
-    
+    const titulo = `TERRMO #${estatisticas.jogosJogados} ${jogadaStr}/${CONFIG.MAX_TENTATIVAS}`;
+
+    // 2. Monta a grade de emojis (lógica mantida)
     const gradeEmoji = estadoJogo.tentativasFeitas.map(palavra => {
         const cores = calcularStatusLetras(palavra);
         return cores.map(c => {
@@ -531,16 +532,25 @@ function compartilharResultado() {
             return '⬛';
         }).join('');
     }).join('\n');
+    
+    // 3. Monta o texto de estatísticas e o link do site
+    const pctVitorias = estatisticas.jogosJogados > 0
+        ? Math.round((estatisticas.vitorias / estatisticas.jogosJogados) * 100)
+        : 0;
+    const statsTexto = `Minhas estatísticas: ${estatisticas.vitorias} vitórias (${pctVitorias}% de acerto).`;
+    const linkDoJogo = "Jogue você também! https://terrmo.vercel.app/";
 
-    const textoFinal = `${titulo}\n\n${gradeEmoji}`;
+    // 4. Junta tudo em uma única mensagem de compartilhamento
+    const textoFinal = `${titulo}\n\n${gradeEmoji}\n\n${statsTexto}\n${linkDoJogo}`;
 
+    // 5. Usa a API do Navegador para compartilhar ou copiar
     if (navigator.share) {
-        navigator.share({ title: 'Termo Clone', text: textoFinal }).catch(err => {
-            console.warn('Compartilhamento cancelado', err);
+        navigator.share({ title: 'Joguei TERRMO!', text: textoFinal }).catch(err => {
+            console.warn('Compartilhamento foi cancelado pelo usuário.', err);
         });
     } else {
         navigator.clipboard.writeText(textoFinal).then(() => {
-            mostrarNotificacao('Copiado para área de transferência!');
+            mostrarNotificacao('Resultado copiado para compartilhar!');
         });
     }
 }
