@@ -1,6 +1,4 @@
-/* =========================================================
-   1. SISTEMA DE CORES E VARIÁVEIS (Paleta Terrosa & Temas)
-   ========================================================= */
+/* 1. SISTEMA DE CORES E VARIÁVEIS (Paleta Terrosa & Temas) */
 :root {
     /* Dimensões do Layout */
     --header-height: 60px;
@@ -54,9 +52,7 @@ body.dark-mode {
     --toast-text: #221A18;
 }
 
-/* =========================================================
-   2. RESET E TIPOGRAFIA GLOBAL
-   ========================================================= */
+/*2. RESET E TIPOGRAFIA GLOBAL*/
 *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
@@ -91,9 +87,7 @@ button {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* =========================================================
-   3. CABEÇALHO (Header)
-   ========================================================= */
+/*3. CABEÇALHO (Header)*/
 .header {
     height: var(--header-height);
     width: 100%;
@@ -164,9 +158,7 @@ input:checked + .slider:before {
     background-color: var(--color-bg); 
 }
 
-/* =========================================================
-   4. GRADE DO JOGO (GRID) - Maximizada
-   ========================================================= */
+/* 4. GRADE DO JOGO (GRID) - Maximizada*/
 #game-container {
     flex-grow: 1; /* Ocupa todo o espaço vertical disponível */
     display: flex;
@@ -246,9 +238,7 @@ input:checked + .slider:before {
     color: var(--color-text-on-state);
 }
 
-/* =========================================================
-   5. TECLADO VIRTUAL INTEGRADO
-   ========================================================= */
+/*5. TECLADO VIRTUAL INTEGRADO*/
 #keyboard-container {
     height: var(--keyboard-height);
     width: 100%;
@@ -306,11 +296,7 @@ input:checked + .slider:before {
     filter: brightness(1.1);
 }
 
-/* =========================================================
-   6. ANIMAÇÕES (Sincronizadas com o JS)
-   ========================================================= */
-
-/* Entrar letra */
+/* 6. ANIMAÇÕES (Sincronizadas com o JS) */
 @keyframes pop {
     0% { transform: scale(0.8); }
     50% { transform: scale(1.1); }
@@ -348,11 +334,7 @@ input:checked + .slider:before {
     80% { transform: translateY(5%); }
 }
 
-/* =========================================================
-   7. MODAIS, POPUPS E TOASTS
-   ========================================================= */
-
-/* Toast Notification (Mensagem Flutuante) */
+/*7. MODAIS, POPUPS E TOASTS*/
 #toast-container {
     position: absolute;
     top: 12%; left: 50%;
@@ -443,6 +425,27 @@ input:checked + .slider:before {
     font-weight: 700; font-size: 1.2rem;
 }
 
+.modal-credits {
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: var(--color-border-active);
+    line-height: 1.6;
+}
+
+.modal-credits p {
+    margin-bottom: 5px; /* dá um espacinho entre cada linha de crédito */
+}
+
+.modal-credits a {
+    color: var(--color-correct);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.modal-credits a:hover {
+    text-decoration: underline;
+}
+
 /* Media Query para Mobile Pequeno */
 @media (max-height: 700px) {
     .header h1 { font-size: 1.8rem; }
@@ -450,11 +453,9 @@ input:checked + .slider:before {
     .key { height: 45px; }
 }
 
-/* =========================================
-   8. ESTILOS DO BOTÃO DE REINICIAR
-   ========================================= */
 
-/* Estilo para o ícone de girar no header */
+
+/* 8. ESTILOS DO BOTÃO DE REINICIAR*/
 .header .restart-game-btn {
     color: var(--color-text); /* Garante que a cor seja a mesma dos outros ícones */
     fill: currentColor;
@@ -490,4 +491,11 @@ input:checked + .slider:before {
 }
 .btn-retry:active {
     transform: scale(0.97); /* "Afunda" levemente ao clicar */
+}
+
+.tile.active-focus {
+    /* Borda escura e grossa para indicar onde o próximo caractere vai entrar */
+    border: 3px solid var(--color-text);
+    /* Uma sombra sutil para fazer o tile "saltar" */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }

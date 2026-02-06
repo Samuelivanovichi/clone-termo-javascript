@@ -77,52 +77,59 @@
 
     <!-- 1. Modal de Ajuda / Tutorial -->
     <div id="help-modal" class="modal-overlay" hidden>
-        <div class="modal-content" role="dialog" aria-labelledby="help-title">
-            <div class="modal-header">
-                <h2 id="help-title">COMO JOGAR</h2>
-                <button class="modal-close-button icon-btn" aria-label="Fechar">✕</button>
+    <div class="modal-content" role="dialog" aria-labelledby="help-title">
+        <div class="modal-header">
+            <h2 id="help-title">COMO JOGAR</h2>
+            <button class="modal-close-button icon-btn" aria-label="Fechar">✕</button>
+        </div>
+        <div class="modal-body">
+            <p>Descubra a palavra certa em 6 tentativas.</p>
+            <p>Depois de cada tentativa, as peças mostram o quão perto você está da solução.</p>
+            
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--color-border);">
+            
+            <p style="margin-bottom: 8px;"><strong>Exemplos:</strong></p>
+            
+            <div class="example-row">
+                <div class="small-tile" style="background:var(--color-correct); color:#fff; border-color:var(--color-correct)">C</div>
+                <div class="small-tile">A</div>
+                <div class="small-tile">N</div>
+                <div class="small-tile">T</div>
+                <div class="small-tile">A</div>
+                <div class="small-tile">R</div>
             </div>
-            <div class="modal-body">
-                <p>Descubra a palavra certa em 6 tentativas.</p>
-                <p>Depois de cada tentativa, as peças mostram o quão perto você está da solução.</p>
-                
-                <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--color-border);">
-                
-                <p style="margin-bottom: 8px;"><strong>Exemplos:</strong></p>
-                
-                <!-- Exemplo Visual Estático (Hardcoded para aparecer sempre colorido) -->
-                <div class="example-row">
-                    <div class="small-tile" style="background:var(--color-correct); color:#fff; border-color:var(--color-correct)">C</div>
-                    <div class="small-tile">A</div>
-                    <div class="small-tile">N</div>
-                    <div class="small-tile">T</div>
-                    <div class="small-tile">A</div>
-                    <div class="small-tile">R</div>
-                </div>
-                <p style="font-size: 0.9rem; margin-bottom: 15px;">A letra <strong>C</strong> está na posição correta (Verde).</p>
+            <p style="font-size: 0.9rem; margin-bottom: 15px;">A letra <strong>C</strong> está na posição correta (Verde).</p>
 
-                <div class="example-row">
-                    <div class="small-tile">V</div>
-                    <div class="small-tile">I</div>
-                    <div class="small-tile" style="background:var(--color-present); color:#fff; border-color:var(--color-present)">O</div>
-                    <div class="small-tile">L</div>
-                    <div class="small-tile">A</div>
-                    <div class="small-tile">R</div>
-                </div>
-                <p style="font-size: 0.9rem; margin-bottom: 15px;">A letra <strong>O</strong> existe na palavra, mas em outro lugar (Amarelo).</p>
+            <div class="example-row">
+                <div class="small-tile">V</div>
+                <div class="small-tile">I</div>
+                <div class="small-tile" style="background:var(--color-present); color:#fff; border-color:var(--color-present)">O</div>
+                <div class="small-tile">L</div>
+                <div class="small-tile">A</div>
+                <div class="small-tile">R</div>
+            </div>
+            <p style="font-size: 0.9rem; margin-bottom: 15px;">A letra <strong>O</strong> existe na palavra, mas em outro lugar (Amarelo).</p>
 
-                <div class="example-row">
-                    <div class="small-tile">P</div>
-                    <div class="small-tile">U</div>
-                    <div class="small-tile">L</div>
-                    <div class="small-tile" style="background:var(--color-absent); color:#fff; border-color:var(--color-absent)">G</div>
-                    <div class="small-tile">A</div>
-                    <div class="small-tile">S</div>
-                </div>
-                <p style="font-size: 0.9rem;">A letra <strong>G</strong> não existe na palavra (Marrom/Cinza).</p>
+            <div class="example-row">
+                <div class="small-tile">P</div>
+                <div class="small-tile">U</div>
+                <div class="small-tile">L</div>
+                <div class="small-tile" style="background:var(--color-absent); color:#fff; border-color:var(--color-absent)">G</div>
+                <div class="small-tile">A</div>
+                <div class="small-tile">S</div>
+            </div>
+            <p style="font-size: 0.9rem; margin-bottom: 15px;">A letra <strong>G</strong> não existe na palavra (Marrom/Cinza).</p>
+
+            <!-- secao de creditos adicionada abaixo -->
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--color-border);">
+            <div style="font-size: 0.85rem; color: var(--color-border-active); line-height: 1.4;">
+                <p>by. Samuel Ivanovichi</p>
+                <p>github. Samuelivanovichi</p>
+                <p>linkedin. Samuel Ivanovichi</p>
             </div>
         </div>
     </div>
+</div>
 
     <!-- 2. Modal de Estatísticas -->
     <div id="stats-modal" class="modal-overlay" hidden>

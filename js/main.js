@@ -1,15 +1,6 @@
-/* 
- * ==============================================================
- *  TERMO CLONE - ENGINE PRINCIPAL
- *  Desenvolvido com foco em Clean Code, Arquitetura Baseada em Estado
- *  e UX (Experiência de Usuário) responsiva.
- * ==============================================================
- */
 
-// Importação da base de dados de palavras
 import { PALAVRAS } from './palavras.js';
 
-// --- CONFIGURAÇÕES GLOBAIS E CONSTANTES ---
 const CONFIG = {
     TAMANHO_PALAVRA: 6,      // O jogo foca em palavras de 6 letras
     MAX_TENTATIVAS: 6,       // Limite padrão de tentativas
@@ -19,8 +10,7 @@ const CONFIG = {
     ANIMATION_DELAY: 250     // Tempo entre revelação de cada letra (ms)
 };
 
-// --- ESTADO DA APLICAÇÃO (SINGLE SOURCE OF TRUTH) ---
-// Todo o visual é derivado destas variáveis. Nunca lemos do DOM para lógica.
+// ESTADO DA APLICAÇÃO 
 let estadoJogo = {
     palavraSecreta: null,    // A palavra a ser descoberta
     tentativasFeitas: [],    // Array de strings com os palpites já validados
@@ -34,11 +24,12 @@ let estatisticas = {
     vitorias: 0,
     sequenciaAtual: 0,
     sequenciaMaxima: 0,
-    // Distribuição de vitórias: index 0 = ganhou na 1ª, index 5 = ganhou na 6ª
     distribuicao: [0, 0, 0, 0, 0, 0]
 };
 
-// --- CACHE DE ELEMENTOS DO DOM (PERFORMANCE) ---
+let focoColuna = 0;
+
+// CACHE DE ELEMENTOS DO DOM 
 const dom = {
     grid: document.getElementById('grid-container'),
     teclado: document.getElementById('keyboard-container'),
@@ -60,11 +51,7 @@ const dom = {
     btnsRestart: document.querySelectorAll('.restart-game-btn')
 };
 
-/* ==============================================================
-   1. INICIALIZAÇÃO E CICLO DE VIDA
-   ============================================================== */
-
-// Ponto de entrada
+// 1. INICIALIZAÇÃO E CICLO DE VIDA
 function inicializar() {
     carregarDadosLocais(); // Tenta recuperar progresso salvo
     aplicarTemaVisual();   // Aplica Dark/Light mode
@@ -72,9 +59,11 @@ function inicializar() {
     if (!estadoJogo.palavraSecreta) {
         // Se não tem jogo salvo, começa um novo
         iniciarNovoJogo();
+        atualizarFocoVisual();
     } else {
         // Se tem, restaura a grade visualmente
         restaurarJogoSalvo();
+        atualizarFocoVisual();
     }
 
     // Gera os botões do teclado virtual apenas uma vez
@@ -102,38 +91,87 @@ function iniciarNovoJogo() {
     
     // Reseta estado
     estadoJogo.tentativasFeitas = [];
-    estadoJogo.bufferAtual = [];
-    estadoJogo.status = 'jogando';
     
+    // CORREÇÃO: Cria um array com 6 espaços vazios para suportar o cursor móvel
+    estadoJogo.bufferAtual = new Array(CONFIG.TAMANHO_PALAVRA).fill(''); 
+    
+    estadoJogo.status = 'jogando';
+
+    focoColuna = 0; // Reseta a posição do cursor
+    
+    // Funções visuais
     salvarEstado();
     criarGradeVazia();
     limparCoresTeclado();
+    atualizarFocoVisual(); 
     
-    console.log(`Debug (Desenvolvimento): Palavra é ${estadoJogo.palavraSecreta}`);
+    console.log(`Debug: Palavra é ${estadoJogo.palavraSecreta}`);
 }
 
-/* ==============================================================
-   2. CONTROLE DE ENTRADA (CONTROLLER)
-   ============================================================== */
-
-/**
- * Função central que decide o que fazer com uma tecla pressionada.
- * Aceita entradas do teclado físico e cliques virtuais.
- */
+// 2. CONTROLE DE ENTRADA (CONTROLLER)
 function processarInput(tecla) {
     if (estadoJogo.status !== 'jogando') return;
 
-    // Normalização
     tecla = tecla.toUpperCase();
     if (tecla === '⌫') tecla = 'BACKSPACE';
 
     if (tecla === 'ENTER') {
         tentarSubmeterPalavra();
     } else if (tecla === 'BACKSPACE') {
-        removerLetraDoBuffer();
+        removerLetra();
     } else if (eLetraValida(tecla)) {
-        adicionarLetraAoBuffer(tecla);
+        inserirLetra(tecla);
     }
+}
+
+function inserirLetra(letra) {
+    const linhaAtual = estadoJogo.tentativasFeitas.length;
+    
+    const tile = document.querySelector(`#row-${linhaAtual} .tile:nth-child(${focoColuna + 1})`);
+    if (tile) {
+        // 1. Atualiza Visual
+        tile.textContent = letra.toUpperCase();
+        tile.dataset.state = 'tbd'; 
+        tile.style.animation = 'pop 0.1s ease-in forwards';
+
+        // 2. CORREÇÃO: Atualiza a Lógica (O Estado) no lugar certo
+        estadoJogo.bufferAtual[focoColuna] = letra.toUpperCase();
+    }
+
+    // Avança o foco se não for o último
+    if (focoColuna < CONFIG.TAMANHO_PALAVRA - 1) {
+        focoColuna++;
+        atualizarFocoVisual();
+    }
+}
+
+function removerLetra() {
+    const linhaAtual = estadoJogo.tentativasFeitas.length;
+    const tileAtual = document.querySelector(`#row-${linhaAtual} .tile:nth-child(${focoColuna + 1})`);
+    
+    if (tileAtual) {
+        // Cenário A: Apagar onde o cursor está (se tiver letra)
+        if (tileAtual.textContent !== '') {
+            tileAtual.textContent = '';
+            tileAtual.removeAttribute('data-state');
+            
+            // CORREÇÃO: Limpa do estado
+            estadoJogo.bufferAtual[focoColuna] = ''; 
+        } 
+        // Cenário B: Se já está vazio, volta um e apaga
+        else if (focoColuna > 0) {
+            focoColuna--; // Volta o foco visual
+            const tileAnterior = document.querySelector(`#row-${linhaAtual} .tile:nth-child(${focoColuna + 1})`);
+            if(tileAnterior) {
+                tileAnterior.textContent = '';
+                tileAnterior.removeAttribute('data-state');
+                
+                // CORREÇÃO: Limpa a posição anterior do estado
+                estadoJogo.bufferAtual[focoColuna] = ''; 
+            }
+        }
+    }
+    atualizarFocoVisual();
 }
 
 function adicionarLetraAoBuffer(letra) {
@@ -151,14 +189,16 @@ function removerLetraDoBuffer() {
 }
 
 async function tentarSubmeterPalavra() {
-    // 1. Validação de Tamanho
-    if (estadoJogo.bufferAtual.length !== CONFIG.TAMANHO_PALAVRA) {
+    // Transforma o array ['A', 'B', ...] na string "AB..."
+    const palavraTentada = estadoJogo.bufferAtual.join("");
+
+    // 1. Validação: Verifica se ainda tem espaço vazio no array (palavra incompleta)
+    // Usamos .includes("") porque o array agora nasce com tamanho 6 fixo cheio de vazios
+    if (estadoJogo.bufferAtual.includes("") || palavraTentada.length !== CONFIG.TAMANHO_PALAVRA) {
         mostrarNotificacao("Palavra incompleta");
         animarShakeErro();
         return;
     }
-
-    const palavraTentada = estadoJogo.bufferAtual.join("");
 
     // 2. Validação de Dicionário
     if (!PALAVRAS.includes(palavraTentada)) {
@@ -169,8 +209,16 @@ async function tentarSubmeterPalavra() {
 
     // 3. Processar Jogada Válida
     estadoJogo.tentativasFeitas.push(palavraTentada);
-    estadoJogo.bufferAtual = []; // Limpa input
+    
+    // CORREÇÃO: Limpa o buffer criando um NOVO array com 6 espaços vazios
+    // para a próxima linha aceitar a lógica de cursor
+    estadoJogo.bufferAtual = new Array(CONFIG.TAMANHO_PALAVRA).fill(''); 
+    
     salvarEstado();
+
+    // Remove o destaque de foco visualmente enquanto a animação roda
+    const tilesFocados = document.querySelectorAll('.tile.active-focus');
+    tilesFocados.forEach(el => el.classList.remove('active-focus'));
 
     // Inicia a animação de revelação
     const indiceLinha = estadoJogo.tentativasFeitas.length - 1;
@@ -178,6 +226,10 @@ async function tentarSubmeterPalavra() {
     
     // Atualiza cores do teclado APÓS revelar
     atualizarCoresTeclado(palavraTentada);
+
+    // Reseta o foco para a primeira coluna da PRÓXIMA linha
+    focoColuna = 0;
+    atualizarFocoVisual();
 
     // 4. Verificação de Vitória/Derrota
     verificarFimDeJogo(palavraTentada);
@@ -214,14 +266,7 @@ function processarDerrota() {
     setTimeout(() => toggleModal(dom.modalStats, true), 2500);
 }
 
-/* ==============================================================
-   3. LÓGICA DO JOGO (ENGINE DE CORES)
-   ============================================================== */
-
-/**
- * Retorna um array de estados ['correct', 'present', 'absent']
- * Trata corretamente letras duplicadas.
- */
+//3. LÓGICA DO JOGO (ENGINE DE CORES)
 function calcularStatusLetras(palavraChute) {
     const alvoArr = estadoJogo.palavraSecreta.split('');
     const chuteArr = palavraChute.split('');
@@ -250,10 +295,7 @@ function calcularStatusLetras(palavraChute) {
     return resultado;
 }
 
-/* ==============================================================
-   4. MANIPULAÇÃO DO DOM & RENDERIZAÇÃO
-   ============================================================== */
-
+//4. MANIPULAÇÃO DO DOM & RENDERIZAÇÃO
 function criarGradeVazia() {
     dom.grid.innerHTML = '';
     for (let i = 0; i < CONFIG.MAX_TENTATIVAS; i++) {
@@ -267,6 +309,20 @@ function criarGradeVazia() {
             row.appendChild(tile);
         }
         dom.grid.appendChild(row);
+    }
+}
+
+function atualizarFocoVisual() {
+    // 1. Remove a classe de foco de todos os tiles do jogo
+    document.querySelectorAll('.tile.active-focus').forEach(t => t.classList.remove('active-focus'));
+
+    // 2. Se o jogo ainda estiver rolando, aplica o foco no tile certo
+    if (estadoJogo.status === 'jogando') {
+        const linhaAtual = estadoJogo.tentativasFeitas.length;
+        const tileFocado = document.querySelector(`#row-${linhaAtual} .tile:nth-child(${focoColuna + 1})`);
+        if (tileFocado) {
+            tileFocado.classList.add('active-focus');
+        }
     }
 }
 
@@ -350,14 +406,7 @@ function restaurarJogoSalvo() {
     }
 }
 
-/* ==============================================================
-   5. ANIMAÇÕES & EFEITOS VISUAIS
-   ============================================================== */
-
-/**
- * Anima a linha de tiles girando (Flip) em cascata.
- * Retorna uma Promise para podermos aguardar o fim da animação.
- */
+//5. ANIMAÇÕES & EFEITOS VISUAIS
 function animarRevelacao(indiceLinha, palavra) {
     return new Promise(resolve => {
         const row = document.getElementById(`row-${indiceLinha}`);
@@ -441,10 +490,7 @@ function limparCoresTeclado() {
     document.querySelectorAll('.key').forEach(k => k.removeAttribute('data-state'));
 }
 
-/* ==============================================================
-   6. GERENCIAMENTO DE MODAIS, NOTIFICAÇÕES & TEMA
-   ============================================================== */
-
+//6. GERENCIAMENTO DE MODAIS, NOTIFICAÇÕES & TEMA
 function toggleModal(modal, mostrar) {
     if (mostrar) {
         // Fecha outros primeiro para evitar sobreposição
@@ -486,10 +532,7 @@ function aplicarTemaVisual() {
     }
 }
 
-/* ==============================================================
-   7. ESTATÍSTICAS E COMPARTILHAMENTO
-   ============================================================== */
-
+//7. ESTATÍSTICAS E COMPARTILHAMENTO
 function atualizarEstatisticas(venceu) {
     estatisticas.jogosJogados++;
     if (venceu) {
@@ -555,10 +598,7 @@ function compartilharResultado() {
     }
 }
 
-/* ==============================================================
-   8. UTILITÁRIOS & PERSISTÊNCIA
-   ============================================================== */
-
+//8. UTILITÁRIOS & PERSISTÊNCIA
 function eLetraValida(str) {
     return /^[A-Z]$/.test(str);
 }
@@ -586,10 +626,7 @@ function salvarStats() {
     localStorage.setItem(CONFIG.STORAGE_KEY_STATS, JSON.stringify(estatisticas));
 }
 
-/* ==============================================================
-   9. REGISTRO DE EVENTOS (LISTENERS)
-   ============================================================== */
-
+//9. REGISTRO DE EVENTOS (LISTENERS)
 function registrarEventos() {
     // 1. Teclado Físico
     document.addEventListener('keydown', (e) => {
@@ -656,6 +693,26 @@ function registrarEventos() {
             e.stopPropagation(); // Evita bubble para o overlay
             btn.closest('.modal-overlay').hidden = true;
         });
+    });
+
+    dom.grid.addEventListener('click', (e) => {
+        // Se o jogo acabou, não faz nada
+        if (estadoJogo.status !== 'jogando') return;
+        
+        // Verifica se o clique foi num tile
+        const tileClicado = e.target.closest('.tile');
+        if (tileClicado) {
+            // Descobre o índice da linha do tile
+            const linhaDoTile = tileClicado.parentElement;
+            const linhaAtual = document.getElementById(`row-${estadoJogo.tentativasFeitas.length}`);
+            
+            // Permite o clique apenas na linha de tentativa ATUAL
+            if (linhaDoTile === linhaAtual) {
+                // Descobre a coluna do tile clicado (de 0 a 5)
+                focoColuna = Array.from(linhaDoTile.children).indexOf(tileClicado);
+                atualizarFocoVisual();
+            }
+        }
     });
     
     dom.overlays.forEach(overlay => {
